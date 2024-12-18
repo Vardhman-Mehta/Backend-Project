@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from '../models/user.model.js';
-import uploadOnCloudinary from '../utils/cloudinary.js';
+import uploadOnCloudinary, {deleteFromCloudinary} from '../utils/cloudinary.js';
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -194,7 +194,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshToken(user._id)
     
         return res
         .status(200)
@@ -237,7 +237,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     return res
     .status(200)
     .json(
-        new ApiResponse(200, {req.user}, "Current User fetched Successfully")
+        new ApiResponse(200, req.user, "Current User fetched Successfully")
     )
 })
 
@@ -248,14 +248,14 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'All Fields are required')
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
                 fullname,
                 email
             }
-        }
+        },
         {
             new: true
         }
@@ -278,6 +278,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
     if(!avatar || !avatar.url){
         throw new ApiError(400, 'Error while uploading avatar')
+    }
+
+    const userOld = await User.findById(req.user._id);
+    const oldAvatarUrl = userOld.avatar;
+    try{
+        await deleteFromCloudinary(oldAvatarUrl);
+    }
+    catch{
+        console.log('Error occured while deleting the old avatar')
     }
 
     const user = await User.findByIdAndUpdate(
@@ -340,5 +349,6 @@ export {
     changeCurrentPassword,
     getCurrentUser,
     updateAccountDetails,
-    updateUserAvatar
+    updateUserAvatar,
+    updateUsercoverImage
 };
