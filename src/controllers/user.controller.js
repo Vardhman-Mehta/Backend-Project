@@ -331,6 +331,15 @@ const updateUsercoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Error while uploading Cover Image')
     }
 
+    const userOld = await User.findById(req.user._id);
+    const oldCoverImageUrl = userOld.coverImage;
+    try{
+        await deleteFromCloudinary(oldCoverImageUrl);
+    }
+    catch{
+        console.log('Error occured while deleting the old cover Image')
+    }
+
     const user = await User.findByIdAndUpdate(
         req.user._id,
         {
