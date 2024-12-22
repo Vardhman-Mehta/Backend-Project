@@ -43,7 +43,7 @@ export const deleteFromCloudinary = async (url) => {
 
         console.log('File deleted successfully')
 
-        return result;
+        return deleteResult;
     } catch (error) {
         console.error('Error deleting file from Cloudinary:', error);
         throw error;
