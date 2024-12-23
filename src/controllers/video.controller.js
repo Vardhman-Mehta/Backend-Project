@@ -125,7 +125,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+    let { videoId } = req.params
+
+    videoId = videoId.trim();
+
+    // console.log(`Received videoId: "${videoId}"`);
     //TODO: get video by id
 
     if(!videoId){
@@ -154,7 +158,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'did not get title and description')
     }
 
-    const thumbnailLocalPath = req.file?.path;
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
     if(!thumbnailLocalPath){
         throw new ApiError(400, 'thumbnail not found')
     }
@@ -211,7 +215,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
     
     const deleteVideo = await deleteFromCloudinary(video.videoFile);
-    if(deleteVideo.result !== 'ok'){
+    if(deleteVideo.result === null){
         throw new ApiError(500, 'Unable to Delete Video File')
     }
 
@@ -268,16 +272,3 @@ export {
     deleteVideo,
     togglePublishStatus
 }
-
-
-
-
-
-// {
-//     $lookup: {
-//         from: "users",
-//         localField: "owner",
-//         foreignField: "_id",
-//         as: "owner"
-//     }
-// },
